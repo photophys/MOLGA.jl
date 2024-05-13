@@ -1,0 +1,3 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+MOLGA = "b48c5265-7ffc-4c55-b559-6de84bc503ad"
