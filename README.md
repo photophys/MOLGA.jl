@@ -4,7 +4,7 @@
 
 <!-- [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://photophys.github.io/MOLGA.jl/stable/) -->
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://photophys.github.io/MOLGA.jl/dev/)
-[![Build Status](https://github.com/photophys/MOLGA.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/photophys/MOLGA.jl/actions/workflows/CI.yml?query=branch%3Amain)
-[![Coverage](https://codecov.io/gh/ORG/REPO/branch/main/graph/badge.svg)](https://codecov.io/gh/ORG/REPO)
+[![Build Status](https://github.com/photophys/MOLGA.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/photophys/MOLGA.jl/actions/workflows/CI.yml)
+[![Coverage](https://codecov.io/gh/photophys/MOLGA.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/photophys/MOLGA.jl)
 
 Work in progress ...
