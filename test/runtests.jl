@@ -1,5 +1,5 @@
 using MOLGA
-using Test
+using Test, Documenter
 
 @testset verbose = true "MOLGA.jl" begin
     @testset "IO" begin
@@ -24,4 +24,6 @@ using Test
         @test test_check_distance(1.0, 5.0) == false
         @test test_check_distance(0.5, 0.75) == false
     end
+
+    doctest(MOLGA)
 end
