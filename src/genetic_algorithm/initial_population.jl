@@ -225,7 +225,7 @@ julia> atom_list
 
  H     1    1 [-0.299181461         -0.759337            0.122146208         ]
 
- H     2    2 [-2.472746407793897   0.20529913233637842  -0.8752937965492471 ]
+ H     2    2 [0.1697103642830644   0.6944540596267874   3.1270295847422487  ]
 ```
 """
 function find_position!(
@@ -400,7 +400,7 @@ Generate a vector of three random angles (from ``0`` to ``2\\pi``, in radians).
 
 ```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.random_angles; using Random)
 julia> random_angles(; rng=Xoshiro(123))
-3-element Vector{Float64}:
+3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
  3.2748828620072237
  3.687015596584574
  5.597555946335841
