@@ -18,6 +18,9 @@ function Base.show(io::IO, vec::Vec)
     return nothing
 end
 
+"""
+Abstract type for [`Atom`](@ref) and [`BaseAtom`](@ref).
+"""
 abstract type AbstractAtom end
 
 """
