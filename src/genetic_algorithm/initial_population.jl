@@ -275,7 +275,7 @@ function rotate_position(position::AbstractVector, angle::AbstractVector)
 end
 
 """
-    random_position(box_size)
+    random_position(box_size [; rng])
 
 Generate a random position within the specified box. The origin is the box's center point, so that
 a box size of ``\\mathbf{s}=\\left(s_x,s_y,s_z\\right)`` leads to a random position ``\\mathbf{x}``
@@ -286,15 +286,17 @@ a box size of ``\\mathbf{s}=\\left(s_x,s_y,s_z\\right)`` leads to a random posit
 
 # Example
 
-```@repl
-julia> random_position([8, 5, 5])
+```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.random_position; using MOLGA.Types; using Random)
+julia> random_position(Vec([8, 5, 5]); rng=Xoshiro(1))
 3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
-  3.6197648788491597
-  1.4205599794740316
- -1.2442172005294312
+ -3.413069164245657
+ -0.7537925522140694
+  0.9941334184573423
 ```
 """
-random_position(box_size::AbstractVector) = Vec(rand(Uniform(-s / 2, s / 2)) for s in box_size)
+function random_position(box_size::Vec; rng::AbstractRNG=Random.default_rng())
+    return Vec(rand(rng, Uniform(-s / 2, s / 2)) for s in box_size)
+end
 
 """
     random_angles()
