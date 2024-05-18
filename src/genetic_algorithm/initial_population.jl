@@ -299,20 +299,20 @@ function random_position(box_size::Vec; rng::AbstractRNG=Random.default_rng())
 end
 
 """
-    random_angles()
+    random_angles([; rng])
 
 Generate a vector of three random angles (from ``0`` to ``2\\pi``, in radians).
 
 # Example
 
-```@repl
-julia> random_angles()
+```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.random_angles; using Random)
+julia> random_angles(; rng=Xoshiro(123))
 3-element Vector{Float64}:
- 5.892339839566983
- 3.042066787260773
- 0.8485697032585366
+ 3.2748828620072237
+ 3.687015596584574
+ 5.597555946335841
 ```
 """
-random_angles() = rand(3) * 2π
+random_angles(; rng::AbstractRNG=Random.default_rng()) = Vec(rand(rng, 3) * 2π)
 
 end
