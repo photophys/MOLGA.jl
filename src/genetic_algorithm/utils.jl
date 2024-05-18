@@ -25,7 +25,7 @@ The atom list contains the atoms of a water molecule. The task is to check if th
 suitable. The distances between the new position and the hydrogen atoms are 1.80392 and 1.30274; the
 distance between `pos` and the carbon atom is 1.40762 (all measured with Chemcraft).
 
-```jldoctest; setup:(using MOLGA.Types, MOLGA.Configuration, MOLGA.GeneticAlgorithm.Utils)
+```jldoctest; setup=:(using MOLGA.Types, MOLGA.Configuration, MOLGA.GeneticAlgorithm.Utils)
 julia> pos = Vec([0.959329065, 0.512611795, -0.106788996]);
 
 julia> atoms = [
