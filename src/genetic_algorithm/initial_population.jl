@@ -255,23 +255,24 @@ Rotate a 3D position vector by a 3D angle vector around the origin using
 
 # Example
 
-```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.rotate_position)
-julia> rotate_position([1, 0, 0.5], [0, 0, π])
-3-element Vector{Float64}:
+```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.rotate_position; using MOLGA.Types)
+julia> rotate_position(Vec([1, 0, 0.5]), Vec([0, 0, π]))
+3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
  -1.0
   1.2246467991473532e-16
   0.5
 ```
 """
-function rotate_position(position::AbstractVector, angle::AbstractVector)
-    # TODO: use pre-computed form to avoid matrix multiplications ?
-    Rx = [1 0 0; 0 cos(angle[1]) -sin(angle[1]); 0 sin(angle[1]) cos(angle[1])]
-    Ry = [cos(angle[2]) 0 sin(angle[2]); 0 1 0; -sin(angle[2]) 0 cos(angle[2])]
-    Rz = [cos(angle[3]) -sin(angle[3]) 0; sin(angle[3]) cos(angle[3]) 0; 0 0 1]
+function rotate_position(position::Vec, angle::Vec)
+    a, b, c = angle
 
-    R = Rz * Ry * Rx
+    R = [
+        cos(b)cos(c) cos(c)sin(a)sin(b)-cos(a)sin(c) cos(a)cos(c)sin(b)+sin(a)sin(c)
+        cos(b)sin(c) cos(a)cos(c)+sin(a)sin(b)sin(c) -cos(c)sin(a)+cos(a)sin(b)sin(c)
+        -sin(b) cos(b)sin(a) cos(a)cos(b)
+    ]
 
-    return R * position
+    return Vec(R * position)
 end
 
 """
