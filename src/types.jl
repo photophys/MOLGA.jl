@@ -18,6 +18,9 @@ function Base.show(io::IO, vec::Vec)
     return nothing
 end
 
+"""
+Abstract type for [`Atom`](@ref) and [`BaseAtom`](@ref).
+"""
 abstract type AbstractAtom end
 
 """
@@ -62,7 +65,7 @@ struct Atom <: AbstractAtom
 end
 
 function Base.show(io::IO, atom::Atom; table::Bool=false)
-    if table
+    if table || get(io, :compact, true)
         println(
             io,
             rpad(element_symbol(atom.element), 2),
