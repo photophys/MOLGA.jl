@@ -242,6 +242,35 @@ function find_position!(
 end
 
 """
+    shuffle_rows!(m::AbstractMatrix [; rng])
+
+Randomly reorder the rows of the given matrix in-place. You can pass a random number generator to
+`rng` like described [here](@ref create).
+
+# Example
+
+```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.shuffle_rows!; using Random)
+julia> mat = [1 10; 2 20; 3 30; 4 40; 5 50];
+
+julia> shuffle_rows!(mat; rng=Xoshiro(123));
+
+julia> mat
+5×2 Matrix{Int64}:
+ 5  50
+ 4  40
+ 2  20
+ 3  30
+ 1  10
+```
+"""
+function shuffle_rows!(m::AbstractMatrix; rng::AbstractRNG=Random.default_rng())
+    row_order = randperm(rng, size(m, 1))
+    m .= m[row_order, :]
+
+    return m
+end
+
+"""
     rotate_position(position, angle)
 
 Rotate a 3D position vector by a 3D angle vector around the origin using
