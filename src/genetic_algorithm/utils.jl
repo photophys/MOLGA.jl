@@ -28,6 +28,9 @@ distance between `pos` and the carbon atom is 1.40762 (all measured with Chemcra
 ```jldoctest; setup=:(using MOLGA.Types, MOLGA.Configuration, MOLGA.GeneticAlgorithm.Utils)
 julia> pos = Vec([0.959329065, 0.512611795, -0.106788996]);
 
+julia> check_distance(pos, Atom[], DistanceThresholds(0.5, 5.0))
+true
+
 julia> atoms = [
            BaseAtom(8, [-0.299181461, 0.000000000, -0.473896792]),
            BaseAtom(1, [-0.299181461, 0.759337000, 0.122146208]),
