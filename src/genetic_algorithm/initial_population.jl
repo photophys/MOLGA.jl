@@ -1,7 +1,6 @@
 module InitialPopulation
 
 using Random
-using Distributions
 
 using ...Configuration
 using ...Types
@@ -303,109 +302,5 @@ function find_position!(
 
     return false
 end
-
-"""
-    shuffle_rows!(m::AbstractMatrix [; rng])
-
-Randomly reorder the rows of the given matrix in-place. You can pass a random number generator to
-`rng` like described [here](@ref create).
-
-# Example
-
-```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.shuffle_rows!; using Random)
-julia> mat = [1 10; 2 20; 3 30; 4 40; 5 50];
-
-julia> shuffle_rows!(mat; rng=Xoshiro(123));
-
-julia> mat
-5×2 Matrix{Int64}:
- 5  50
- 4  40
- 2  20
- 3  30
- 1  10
-```
-"""
-function shuffle_rows!(m::AbstractMatrix; rng::AbstractRNG=Random.default_rng())
-    row_order = randperm(rng, size(m, 1))
-    m .= m[row_order, :]
-
-    return m
-end
-
-"""
-    rotate_position(position, angle)
-
-Rotate a 3D position vector by a 3D angle vector around the origin using
-[rotation matrices](https://en.wikipedia.org/wiki/Rotation_matrix#Basic_3D_rotations).
-
-# Arguments
-
-  - `position::Vector{Float64}`: The 3D position vector to be rotated.
-  - `angle::Vector{Float64}`: The 3D angle vector representing rotation angles around the ``x``,
-    ``y``, and ``z`` axes in radians.
-
-# Example
-
-```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.rotate_position; using MOLGA.Types)
-julia> rotate_position(Vec([1, 0, 0.5]), Vec([0, 0, π]))
-3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
- -1.0
-  1.2246467991473532e-16
-  0.5
-```
-"""
-function rotate_position(position::Vec, angle::Vec)
-    a, b, c = angle
-
-    R = [
-        cos(b)cos(c) cos(c)sin(a)sin(b)-cos(a)sin(c) cos(a)cos(c)sin(b)+sin(a)sin(c)
-        cos(b)sin(c) cos(a)cos(c)+sin(a)sin(b)sin(c) -cos(c)sin(a)+cos(a)sin(b)sin(c)
-        -sin(b) cos(b)sin(a) cos(a)cos(b)
-    ]
-
-    return Vec(R * position)
-end
-
-"""
-    random_position(box_size [; rng])
-
-Generate a random position within the specified box. The origin is the box's center point, so that
-a box size of ``\\mathbf{s}=\\left(s_x,s_y,s_z\\right)`` leads to a random position ``\\mathbf{x}``
-
-```math
--\\frac{1}{2}\\,\\mathbf{s}\\leq\\mathbf{x}\\leq\\frac{1}{2}\\,\\mathbf{s} \\text{.}
-```
-
-# Example
-
-```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.random_position; using MOLGA.Types; using Random)
-julia> random_position(Vec([8, 5, 5]); rng=Xoshiro(1))
-3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
- -3.413069164245657
- -0.7537925522140694
-  0.9941334184573423
-```
-"""
-function random_position(box_size::Vec; rng::AbstractRNG=Random.default_rng())
-    return Vec(rand(rng, Uniform(-s / 2, s / 2)) for s in box_size)
-end
-
-"""
-    random_angles([; rng])
-
-Generate a vector of three random angles (from ``0`` to ``2\\pi``, in radians).
-
-# Example
-
-```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.random_angles; using Random)
-julia> random_angles(; rng=Xoshiro(123))
-3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
- 3.2748828620072237
- 3.687015596584574
- 5.597555946335841
-```
-"""
-random_angles(; rng::AbstractRNG=Random.default_rng()) = Vec(rand(rng, 3) * 2π)
 
 end
