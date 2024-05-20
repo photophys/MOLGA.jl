@@ -214,8 +214,8 @@ structure is not modified.
 
 # Example
 
-```jldoctest; setup=:(using Random, MOLGA.Configuration; import MOLGA.GeneticAlgorithm.Mutation.switch_atom_preserving!; DEMO_STRUCTURE=deepcopy(DEMO_STRUCTURE_Ag);)
-julia> structure = DEMO_STRUCTURE
+```jldoctest; setup=:(using Random, MOLGA, MOLGA.Configuration; import MOLGA.GeneticAlgorithm.Mutation.switch_atom_preserving!)
+julia> structure = deepcopy(MOLGA.Samples.DEMO_STRUCTURE_Ag)
 Structure with 13 atoms
 Energy: 0.0
 Nuclear repulsion energy: 0.0
@@ -309,8 +309,8 @@ the lower distance threshold.
 
 # Example
 
-```jldoctest; setup=:(using MOLGA.Configuration; import MOLGA.GeneticAlgorithm.Mutation.try_switch_atom_preserving!; DEMO_STRUCTURE=deepcopy(DEMO_STRUCTURE_Ag);)
-julia> structure = DEMO_STRUCTURE
+```jldoctest; setup=:(using MOLGA,MOLGA.Configuration; import MOLGA.GeneticAlgorithm.Mutation.try_switch_atom_preserving!)
+julia> structure = deepcopy(MOLGA.Samples.DEMO_STRUCTURE_Ag)
 Structure with 13 atoms
 Energy: 0.0
 Nuclear repulsion energy: 0.0
