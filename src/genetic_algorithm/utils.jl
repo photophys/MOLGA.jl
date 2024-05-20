@@ -9,7 +9,7 @@ using ...Configuration
 export check_distance
 
 """
-    check_distance(new_position, atoms, thresholds)
+    check_distance(new_position, atoms, thresholds, check_only_lower_threshold=false)
 
 Checks if the new position is sufficiently far away from all existing atoms in the atom list.
 
@@ -18,6 +18,7 @@ Checks if the new position is sufficiently far away from all existing atoms in t
   - `new_position::`[`Vec`](@ref): The new position to be checked.
   - `atoms::Vector{<:`[`AbstractAtom`](@ref)`}`: The current list of atoms.
   - `thresholds::`[`DistanceThresholds`](@ref)
+  - `check_only_lower_threshold::Bool`: True if only the lower distance threshold should be checked.
 
 # Example
 
@@ -45,10 +46,16 @@ false
 
 julia> check_distance(pos, atoms, DistanceThresholds(0.5, 1))
 false
+
+julia> check_distance(pos, atoms, DistanceThresholds(0.5, 1), true)
+true
 ```
 """
 function check_distance(
-    new_position::Vec, atoms::Vector{<:AbstractAtom}, thresholds::DistanceThresholds
+    new_position::Vec,
+    atoms::Vector{<:AbstractAtom},
+    thresholds::DistanceThresholds,
+    check_only_lower_threshold::Bool=false,
 )
     if length(atoms) < 1
         @debug "No distance check because atom list has less than one atom"
@@ -57,7 +64,7 @@ function check_distance(
 
     for atom in atoms
         distance = norm(new_position - atom.position)
-        if distance < thresholds.min || distance > thresholds.max
+        if distance < thresholds.min || (!check_only_lower_threshold && distance > thresholds.max)
             return false
         end
     end
