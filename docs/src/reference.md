@@ -15,7 +15,7 @@ Modules = [MOLGA]
 ## Genetic Algorithm
 
 ```@autodocs
-Modules = [MOLGA.GeneticAlgorithm.InitialPopulation,MOLGA.GeneticAlgorithm.Optimization,MOLGA.GeneticAlgorithm.Utils]
+Modules = [MOLGA.GeneticAlgorithm.InitialPopulation,MOLGA.GeneticAlgorithm.Mutation,MOLGA.GeneticAlgorithm.Optimization,MOLGA.GeneticAlgorithm.Utils]
 ```
 
 ## Interfaces

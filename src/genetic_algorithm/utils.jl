@@ -76,8 +76,11 @@ end
 """
     shuffle_rows!(m::AbstractMatrix [; rng])
 
-Randomly reorder the rows of the given matrix in-place. You can pass a random number generator to
-`rng` like described [here](@ref create).
+You can pass a random number generator to `rng`. If you need consistent results for testing
+purposes, pass a seeded pseudorandom number generator here, eg.
+[`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
+Defaults to
+[`Random.default_rng()`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.default_rng).
 
 # Example
 
@@ -142,6 +145,12 @@ end
 Generate a random position within the specified box. The origin is the box's center point, so that
 a box size of ``\\mathbf{s}=\\left(s_x,s_y,s_z\\right)`` leads to a random position ``\\mathbf{x}``
 
+You can pass a random number generator to `rng`. If you need consistent results for testing
+purposes, pass a seeded pseudorandom number generator here, eg.
+[`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
+Defaults to
+[`Random.default_rng()`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.default_rng).
+
 ```math
 -\\frac{1}{2}\\,\\mathbf{s}\\leq\\mathbf{x}\\leq\\frac{1}{2}\\,\\mathbf{s} \\text{.}
 ```
@@ -164,6 +173,12 @@ end
     random_angles([; rng])
 
 Generate a vector of three random angles (from ``0`` to ``2\\pi``, in radians).
+
+You can pass a random number generator to `rng`. If you need consistent results for testing
+purposes, pass a seeded pseudorandom number generator here, eg.
+[`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
+Defaults to
+[`Random.default_rng()`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.default_rng).
 
 # Example
 
