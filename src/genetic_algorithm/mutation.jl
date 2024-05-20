@@ -153,11 +153,11 @@ function switch_atom_preserving!(
     # preferring looping through combinations over creating an array with all combinations
     for idx_1 in shuffle(rng, 1:num_atoms)
         for idx_2 in shuffle(rng, (idx_1 + 1):num_atoms)
-            # we are not trying to exchange two atoms from the same fragment,
+            # we are not trying to exchange two atoms from the same fragment kind,
             # including an atom with itself
             if (
                 idx_1 !== idx_2 &&
-                structure.atoms[idx_1].permanent_index != structure.atoms[idx_2].permanent_index
+                structure.atoms[idx_1].fragment_kind != structure.atoms[idx_2].fragment_kind
             )
                 if try_switch_atom_preserving!(structure, idx_1, idx_2, distance_thresholds)
                     return nothing
