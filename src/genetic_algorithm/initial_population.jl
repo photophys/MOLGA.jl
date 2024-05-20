@@ -64,6 +64,46 @@ respect to the distance thresholds.
 # Returns
 
 A vector of [atoms](@ref Atom).
+
+# Example
+
+Small example creating an atom list with one Ag atom and four water molecules.
+
+```jldoctest; setup=:(using Random, MOLGA.Types, MOLGA.Configuration; import MOLGA.GeneticAlgorithm.InitialPopulation.generate_atoms)
+julia> atom_config::AtomConfig = [
+           ConfigAtom(1, 47), # 1x Ag
+           ConfigMolecule( # 4x H2O
+               4,
+               [
+                   BaseAtom(8, [-1.674872668 0.000000000 -0.984966492]),
+                   BaseAtom(1, [-1.674872668 0.759337000 -0.388923492]),
+                   BaseAtom(1, [-1.674872668 -0.759337000 -0.388923492]),
+               ],
+           ),
+       ];
+
+julia> indices = [1 1; 2 2; 2 3; 2 4; 2 5];
+       population_config = InitialPopulationConfiguration(2, Vec(8, 8, 8), atom_config);
+       thresholds = DistanceThresholds(0.6, 5);
+
+julia> atoms = generate_atoms(indices, population_config, thresholds, 100; rng=Xoshiro(123));
+
+julia> show(atoms)
+   frag perm position
+O     2    5 [-2.4770333452109243  -3.431281259074869   4.54646256001069    ]
+H     2    5 [-1.7648962458876567  -2.9287153499858496  4.961370015001522   ]
+H     2    5 [-2.1826188648443647  -4.3478380096041835  4.617903264287958   ]
+O     2    4 [0.7497562286266901   -3.2644362986611446  2.294185463046077   ]
+H     2    4 [1.0913043037934056   -2.365109811952456   2.214081030758482   ]
+H     2    4 [1.5403392220307977   -3.7973137270056903  2.445447204141124   ]
+O     2    2 [0.009263151100168399 -2.841697310728465   5.348068954930102   ]
+H     2    2 [0.16930600494596648  -3.7718340771241343  5.145357785652479   ]
+H     2    2 [-0.6139073734799423  -2.5622881483814584  4.665830759935792   ]
+O     2    3 [0.09878867117371559  -2.7223525995269084  1.934017529032187   ]
+H     2    3 [-0.45581965769155497 -3.094652410991112   2.630912348466935   ]
+H     2    3 [-0.08138337062727174 -1.775059413996567   1.9791129103815164  ]
+Ag    1    1 [1.436302063959932    -3.3577497929871196  1.9092560648370087  ]
+```
 """
 function generate_atoms(
     indices::Matrix{Int},
