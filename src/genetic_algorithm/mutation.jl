@@ -486,6 +486,53 @@ is not modified.
     [`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
     Defaults to
     [`Random.default_rng()`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.default_rng).
+
+# Example
+
+```jldoctest; setup=:(using Random, MOLGA, MOLGA.Types, MOLGA.Configuration; import MOLGA.GeneticAlgorithm.Mutation.reposition_atom_preserving!)
+julia> structure = deepcopy(MOLGA.Samples.DEMO_STRUCTURE_Ag)
+Structure with 13 atoms
+Energy: 0.0
+Nuclear repulsion energy: 0.0
+Age: 0
+   frag perm position
+O     2    2 [1.834176             -1.086997            -0.145691           ]
+H     2    2 [2.642219             -0.527623            0.117024            ]
+H     2    2 [2.082181             -1.613762            -0.930716           ]
+O     2    3 [3.732413             0.511988             0.663892            ]
+H     2    3 [4.173112             0.327927             1.518267            ]
+H     2    3 [4.423184             0.920848             0.10458             ]
+Ag    1    1 [1.2e-5               -0.000259            -0.210701           ]
+O     2    4 [-1.833937            1.086716             -0.146848           ]
+H     2    4 [-2.081857            1.612214             -0.932792           ]
+H     2    4 [-2.64222             0.527829             0.116511            ]
+O     2    5 [-3.732675            -0.510572            0.664366            ]
+H     2    5 [-4.423943            -0.91958             0.105806            ]
+H     2    5 [-4.173075            -0.324762            1.518501            ]
+
+julia> thresholds = DistanceThresholds(0.6, 5);
+       reposition_atom_preserving!(structure, Vec(8, 8, 8), thresholds; rng=Xoshiro(123))
+
+julia> structure
+Structure with 13 atoms
+Energy: 0.0
+Nuclear repulsion energy: 0.0
+Age: 0
+   frag perm position
+O     2    2 [1.834176             -1.086997            -0.145691           ]
+H     2    2 [2.642219             -0.527623            0.117024            ]
+H     2    2 [2.082181             -1.613762            -0.930716           ]
+O     2    3 [0.14825493974911375  1.4998088298154295   -2.4914429619616025 ]
+H     2    3 [0.5889539397491133   1.3157478298154297   -1.6370679619616026 ]
+H     2    3 [0.8390259397491135   1.9086688298154297   -3.050754961961603  ]
+Ag    1    1 [1.2e-5               -0.000259            -0.210701           ]
+O     2    4 [-1.833937            1.086716             -0.146848           ]
+H     2    4 [-2.081857            1.612214             -0.932792           ]
+H     2    4 [-2.64222             0.527829             0.116511            ]
+O     2    5 [-3.732675            -0.510572            0.664366            ]
+H     2    5 [-4.423943            -0.91958             0.105806            ]
+H     2    5 [-4.173075            -0.324762            1.518501            ]
+```
 """
 function reposition_atom_preserving!(
     structure::Structure,
@@ -527,6 +574,61 @@ the lower distance threshold.
 
   - `true` if the reposition is successful,
   - `false` if a distance check fails.
+
+# Example
+
+```jldoctest; setup=:(using MOLGA, MOLGA.Types, MOLGA.Configuration; import MOLGA.GeneticAlgorithm.Mutation.try_reposition_atom_preserving!)
+julia> structure = deepcopy(MOLGA.Samples.DEMO_STRUCTURE_Ag)
+Structure with 13 atoms
+Energy: 0.0
+Nuclear repulsion energy: 0.0
+Age: 0
+   frag perm position
+O     2    2 [1.834176             -1.086997            -0.145691           ]
+H     2    2 [2.642219             -0.527623            0.117024            ]
+H     2    2 [2.082181             -1.613762            -0.930716           ]
+O     2    3 [3.732413             0.511988             0.663892            ]
+H     2    3 [4.173112             0.327927             1.518267            ]
+H     2    3 [4.423184             0.920848             0.10458             ]
+Ag    1    1 [1.2e-5               -0.000259            -0.210701           ]
+O     2    4 [-1.833937            1.086716             -0.146848           ]
+H     2    4 [-2.081857            1.612214             -0.932792           ]
+H     2    4 [-2.64222             0.527829             0.116511            ]
+O     2    5 [-3.732675            -0.510572            0.664366            ]
+H     2    5 [-4.423943            -0.91958             0.105806            ]
+H     2    5 [-4.173075            -0.324762            1.518501            ]
+
+julia> thresholds = DistanceThresholds(0.6, 5);
+
+julia> try_reposition_atom_preserving!(structure, 3, Vec(2.7924, -0.8167, -0.1357), thresholds)
+false
+
+julia> try_reposition_atom_preserving!(structure, 7, Vec(-1.3685, 0.8138, -0.2107), thresholds)
+false
+
+julia> try_reposition_atom_preserving!(structure, 11, Vec(-1.5886, -0.9054, 0.6644), thresholds)
+true
+
+julia> structure
+Structure with 13 atoms
+Energy: 0.0
+Nuclear repulsion energy: 0.0
+Age: 0
+   frag perm position
+O     2    2 [1.834176             -1.086997            -0.145691           ]
+H     2    2 [2.642219             -0.527623            0.117024            ]
+H     2    2 [2.082181             -1.613762            -0.930716           ]
+O     2    3 [3.732413             0.511988             0.663892            ]
+H     2    3 [4.173112             0.327927             1.518267            ]
+H     2    3 [4.423184             0.920848             0.10458             ]
+Ag    1    1 [1.2e-5               -0.000259            -0.210701           ]
+O     2    4 [-1.833937            1.086716             -0.146848           ]
+H     2    4 [-2.081857            1.612214             -0.932792           ]
+H     2    4 [-2.64222             0.527829             0.116511            ]
+O     2    5 [-1.5886              -0.9054              0.6644              ]
+H     2    5 [-2.2798680000000004  -1.3144079999999998  0.10583999999999998 ]
+H     2    5 [-2.029               -0.71959             1.518535            ]
+```
 """
 function try_reposition_atom_preserving!(
     structure::Structure,
