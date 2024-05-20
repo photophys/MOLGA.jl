@@ -29,12 +29,11 @@ A vector of [structures](@ref Structure).
 function create(config::ConfigurationObject; rng::AbstractRNG=Random.default_rng())
     population = Structure[]
 
-    generate_indices(config.initial_population.atom_config)
     indices = generate_indices(config.initial_population.atom_config)
 
     for _ in 1:(config.initial_population.num_structures)
         atoms = generate_atoms(
-            indices, config.initial_population, config.distance_thresholds, 10_000
+            indices, config.initial_population, config.distance_thresholds, 10_000; rng
         )
         push!(population, Structure(; atoms=atoms))
     end
@@ -77,7 +76,7 @@ function generate_atoms(
 
     for it in 1:max_iterations
         failed = false
-        shuffle_rows!(indices)
+        shuffle_rows!(indices; rng)
 
         for (config_idx, permanent_index) in eachrow(indices)
             result = find_position!(
