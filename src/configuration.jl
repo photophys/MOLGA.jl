@@ -9,7 +9,12 @@ using ..Types
 using ..IO
 
 export ConfigurationObject,
-    DistanceThresholds, InitialPopulationConfiguration, ConfigAtom, ConfigMolecule, AtomConfig
+    DistanceThresholds,
+    MutationConfiguration,
+    InitialPopulationConfiguration,
+    ConfigAtom,
+    ConfigMolecule,
+    AtomConfig
 
 """
     DistanceThresholds(min, max)
@@ -77,6 +82,24 @@ struct InitialPopulationConfiguration
 end
 
 """
+Configure the mutation parameters.
+$(TYPEDFIELDS)
+"""
+struct MutationConfiguration
+    """
+    Probability in the interval [0,1] with which each individual structure mutates. Each mutation
+    function is applied to the structure with this probability.
+    """
+    probability::Float64
+
+    """
+    If True, when a mutation happens, the structure before and after the mutation is kept; otherwise
+    only the mutated structure is kept.
+    """
+    keep_non_mutated::Bool
+end
+
+"""
 Stores the entire configuration parameters.
 $(FIELDS)
 """
@@ -92,6 +115,12 @@ struct ConfigurationObject
 
     """See [`DistanceThresholds`](@ref)."""
     distance_thresholds::DistanceThresholds
+
+    """True if fragments should be preserved during recombination and mutation."""
+    preserve_fragments::Bool
+
+    """See [`MutationConfiguration`](@ref)."""
+    mutation::MutationConfiguration
 end
 
 """
@@ -114,17 +143,6 @@ function create_atom_config(
         ]
     ]
 end
-
-# function parse_config_atoms(raw_atoms::Dict{String,Int})
-#     return [ConfigAtom(num, elements[Symbol(symbol)].number) for (symbol, num) in raw_atoms]
-# end
-
-# function parse_config_molecules(raw_molecules::Dict{String,Int}, config_path::String)
-#     return [
-#         ConfigMolecule(num, load_xyz(Filesystem.joinpath(config_path, molecule_path))) for
-#         (molecule_path, num) in raw_molecules
-#     ]
-# end
 
 """
     load_config(configuration_file)
@@ -156,6 +174,10 @@ function load_config(configuration_file::String)
         parsed_config["spin_multiplicity"],
         DistanceThresholds(
             parsed_config["distance_thresholds"]["min"], parsed_config["distance_thresholds"]["max"]
+        ),
+        parsed_config["preserve_fragments"],
+        MutationConfiguration(
+            parsed_config["mutation"]["probability"], parsed_config["mutation"]["keep_non_mutated"]
         ),
     )
 end
