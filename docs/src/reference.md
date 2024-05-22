@@ -8,8 +8,8 @@ Order = [:function, :type, :constant]
 
 ## Main Module
 
-```@autodocs
-Modules = [MOLGA]
+```@docs
+run_genetic_algorithm
 ```
 
 ## Genetic Algorithm
