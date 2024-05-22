@@ -1,7 +1,6 @@
 module InitialPopulation
 
 using Random
-using Distributions
 
 using ...Configuration
 using ...Types
@@ -30,12 +29,11 @@ A vector of [structures](@ref Structure).
 function create(config::ConfigurationObject; rng::AbstractRNG=Random.default_rng())
     population = Structure[]
 
-    generate_indices(config.initial_population.atom_config)
     indices = generate_indices(config.initial_population.atom_config)
 
     for _ in 1:(config.initial_population.num_structures)
         atoms = generate_atoms(
-            indices, config.initial_population, config.distance_thresholds, 10_000
+            indices, config.initial_population, config.distance_thresholds, 10_000; rng
         )
         push!(population, Structure(; atoms=atoms))
     end
@@ -66,6 +64,46 @@ respect to the distance thresholds.
 # Returns
 
 A vector of [atoms](@ref Atom).
+
+# Example
+
+Small example creating an atom list with one Ag atom and four water molecules.
+
+```jldoctest; setup=:(using Random, MOLGA.Types, MOLGA.Configuration; import MOLGA.GeneticAlgorithm.InitialPopulation.generate_atoms)
+julia> atom_config::AtomConfig = [
+           ConfigAtom(1, 47), # 1x Ag
+           ConfigMolecule( # 4x H2O
+               4,
+               [
+                   BaseAtom(8, [-1.674872668 0.000000000 -0.984966492]),
+                   BaseAtom(1, [-1.674872668 0.759337000 -0.388923492]),
+                   BaseAtom(1, [-1.674872668 -0.759337000 -0.388923492]),
+               ],
+           ),
+       ];
+
+julia> indices = [1 1; 2 2; 2 3; 2 4; 2 5];
+       population_config = InitialPopulationConfiguration(2, Vec(8, 8, 8), atom_config);
+       thresholds = DistanceThresholds(0.6, 5);
+
+julia> atoms = generate_atoms(indices, population_config, thresholds, 100; rng=Xoshiro(123));
+
+julia> show(atoms)
+   frag perm position
+O     2    5 [-2.4770333452109243  -3.431281259074869   4.54646256001069    ]
+H     2    5 [-1.7648962458876567  -2.9287153499858496  4.961370015001522   ]
+H     2    5 [-2.1826188648443647  -4.3478380096041835  4.617903264287958   ]
+O     2    4 [0.7497562286266901   -3.2644362986611446  2.294185463046077   ]
+H     2    4 [1.0913043037934056   -2.365109811952456   2.214081030758482   ]
+H     2    4 [1.5403392220307977   -3.7973137270056903  2.445447204141124   ]
+O     2    2 [0.009263151100168399 -2.841697310728465   5.348068954930102   ]
+H     2    2 [0.16930600494596648  -3.7718340771241343  5.145357785652479   ]
+H     2    2 [-0.6139073734799423  -2.5622881483814584  4.665830759935792   ]
+O     2    3 [0.09878867117371559  -2.7223525995269084  1.934017529032187   ]
+H     2    3 [-0.45581965769155497 -3.094652410991112   2.630912348466935   ]
+H     2    3 [-0.08138337062727174 -1.775059413996567   1.9791129103815164  ]
+Ag    1    1 [1.436302063959932    -3.3577497929871196  1.9092560648370087  ]
+```
 """
 function generate_atoms(
     indices::Matrix{Int},
@@ -78,7 +116,7 @@ function generate_atoms(
 
     for it in 1:max_iterations
         failed = false
-        shuffle_rows!(indices)
+        shuffle_rows!(indices; rng)
 
         for (config_idx, permanent_index) in eachrow(indices)
             result = find_position!(
@@ -303,109 +341,5 @@ function find_position!(
 
     return false
 end
-
-"""
-    shuffle_rows!(m::AbstractMatrix [; rng])
-
-Randomly reorder the rows of the given matrix in-place. You can pass a random number generator to
-`rng` like described [here](@ref create).
-
-# Example
-
-```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.shuffle_rows!; using Random)
-julia> mat = [1 10; 2 20; 3 30; 4 40; 5 50];
-
-julia> shuffle_rows!(mat; rng=Xoshiro(123));
-
-julia> mat
-5×2 Matrix{Int64}:
- 5  50
- 4  40
- 2  20
- 3  30
- 1  10
-```
-"""
-function shuffle_rows!(m::AbstractMatrix; rng::AbstractRNG=Random.default_rng())
-    row_order = randperm(rng, size(m, 1))
-    m .= m[row_order, :]
-
-    return m
-end
-
-"""
-    rotate_position(position, angle)
-
-Rotate a 3D position vector by a 3D angle vector around the origin using
-[rotation matrices](https://en.wikipedia.org/wiki/Rotation_matrix#Basic_3D_rotations).
-
-# Arguments
-
-  - `position::Vector{Float64}`: The 3D position vector to be rotated.
-  - `angle::Vector{Float64}`: The 3D angle vector representing rotation angles around the ``x``,
-    ``y``, and ``z`` axes in radians.
-
-# Example
-
-```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.rotate_position; using MOLGA.Types)
-julia> rotate_position(Vec([1, 0, 0.5]), Vec([0, 0, π]))
-3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
- -1.0
-  1.2246467991473532e-16
-  0.5
-```
-"""
-function rotate_position(position::Vec, angle::Vec)
-    a, b, c = angle
-
-    R = [
-        cos(b)cos(c) cos(c)sin(a)sin(b)-cos(a)sin(c) cos(a)cos(c)sin(b)+sin(a)sin(c)
-        cos(b)sin(c) cos(a)cos(c)+sin(a)sin(b)sin(c) -cos(c)sin(a)+cos(a)sin(b)sin(c)
-        -sin(b) cos(b)sin(a) cos(a)cos(b)
-    ]
-
-    return Vec(R * position)
-end
-
-"""
-    random_position(box_size [; rng])
-
-Generate a random position within the specified box. The origin is the box's center point, so that
-a box size of ``\\mathbf{s}=\\left(s_x,s_y,s_z\\right)`` leads to a random position ``\\mathbf{x}``
-
-```math
--\\frac{1}{2}\\,\\mathbf{s}\\leq\\mathbf{x}\\leq\\frac{1}{2}\\,\\mathbf{s} \\text{.}
-```
-
-# Example
-
-```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.random_position; using MOLGA.Types; using Random)
-julia> random_position(Vec([8, 5, 5]); rng=Xoshiro(1))
-3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
- -3.413069164245657
- -0.7537925522140694
-  0.9941334184573423
-```
-"""
-function random_position(box_size::Vec; rng::AbstractRNG=Random.default_rng())
-    return Vec(rand(rng, Uniform(-s / 2, s / 2)) for s in box_size)
-end
-
-"""
-    random_angles([; rng])
-
-Generate a vector of three random angles (from ``0`` to ``2\\pi``, in radians).
-
-# Example
-
-```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.random_angles; using Random)
-julia> random_angles(; rng=Xoshiro(123))
-3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
- 3.2748828620072237
- 3.687015596584574
- 5.597555946335841
-```
-"""
-random_angles(; rng::AbstractRNG=Random.default_rng()) = Vec(rand(rng, 3) * 2π)
 
 end

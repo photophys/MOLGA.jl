@@ -1,15 +1,16 @@
 module Utils
 
 using LinearAlgebra
+using Distributions
 using Random
 
 using ...Types
 using ...Configuration
 
-export check_distance
+export check_distance, shuffle_rows!, rotate_position, random_position, random_angles
 
 """
-    check_distance(new_position, atoms, thresholds)
+    check_distance(new_position, atoms, thresholds, check_only_lower_threshold=false)
 
 Checks if the new position is sufficiently far away from all existing atoms in the atom list.
 
@@ -18,6 +19,7 @@ Checks if the new position is sufficiently far away from all existing atoms in t
   - `new_position::`[`Vec`](@ref): The new position to be checked.
   - `atoms::Vector{<:`[`AbstractAtom`](@ref)`}`: The current list of atoms.
   - `thresholds::`[`DistanceThresholds`](@ref)
+  - `check_only_lower_threshold::Bool`: True if only the lower distance threshold should be checked.
 
 # Example
 
@@ -45,10 +47,16 @@ false
 
 julia> check_distance(pos, atoms, DistanceThresholds(0.5, 1))
 false
+
+julia> check_distance(pos, atoms, DistanceThresholds(0.5, 1), true)
+true
 ```
 """
 function check_distance(
-    new_position::Vec, atoms::Vector{<:AbstractAtom}, thresholds::DistanceThresholds
+    new_position::Vec,
+    atoms::Vector{<:AbstractAtom},
+    thresholds::DistanceThresholds,
+    check_only_lower_threshold::Bool=false,
 )
     if length(atoms) < 1
         @debug "No distance check because atom list has less than one atom"
@@ -57,12 +65,131 @@ function check_distance(
 
     for atom in atoms
         distance = norm(new_position - atom.position)
-        if distance < thresholds.min || distance > thresholds.max
+        if distance < thresholds.min || (!check_only_lower_threshold && distance > thresholds.max)
             return false
         end
     end
 
     return true
 end
+
+"""
+    shuffle_rows!(m::AbstractMatrix [; rng])
+
+You can pass a random number generator to `rng`. If you need consistent results for testing
+purposes, pass a seeded pseudorandom number generator here, eg.
+[`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
+Defaults to
+[`Random.default_rng()`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.default_rng).
+
+# Example
+
+```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.shuffle_rows!; using Random)
+julia> mat = [1 10; 2 20; 3 30; 4 40; 5 50];
+
+julia> shuffle_rows!(mat; rng=Xoshiro(123));
+
+julia> mat
+5×2 Matrix{Int64}:
+ 5  50
+ 4  40
+ 2  20
+ 3  30
+ 1  10
+```
+"""
+function shuffle_rows!(m::AbstractMatrix; rng::AbstractRNG=Random.default_rng())
+    row_order = randperm(rng, size(m, 1))
+    m .= m[row_order, :]
+
+    return m
+end
+
+"""
+    rotate_position(position, angle)
+
+Rotate a 3D position vector by a 3D angle vector around the origin using
+[rotation matrices](https://en.wikipedia.org/wiki/Rotation_matrix#Basic_3D_rotations).
+
+# Arguments
+
+  - `position::Vector{Float64}`: The 3D position vector to be rotated.
+  - `angle::Vector{Float64}`: The 3D angle vector representing rotation angles around the ``x``,
+    ``y``, and ``z`` axes in radians.
+
+# Example
+
+```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.rotate_position; using MOLGA.Types)
+julia> rotate_position(Vec([1, 0, 0.5]), Vec([0, 0, π]))
+3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
+ -1.0
+  1.2246467991473532e-16
+  0.5
+```
+"""
+function rotate_position(position::Vec, angle::Vec)
+    a, b, c = angle
+
+    R = [
+        cos(b)cos(c) cos(c)sin(a)sin(b)-cos(a)sin(c) cos(a)cos(c)sin(b)+sin(a)sin(c)
+        cos(b)sin(c) cos(a)cos(c)+sin(a)sin(b)sin(c) -cos(c)sin(a)+cos(a)sin(b)sin(c)
+        -sin(b) cos(b)sin(a) cos(a)cos(b)
+    ]
+
+    return Vec(R * position)
+end
+
+"""
+    random_position(box_size [; rng])
+
+Generate a random position within the specified box. The origin is the box's center point, so that
+a box size of ``\\mathbf{s}=\\left(s_x,s_y,s_z\\right)`` leads to a random position ``\\mathbf{x}``
+
+You can pass a random number generator to `rng`. If you need consistent results for testing
+purposes, pass a seeded pseudorandom number generator here, eg.
+[`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
+Defaults to
+[`Random.default_rng()`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.default_rng).
+
+```math
+-\\frac{1}{2}\\,\\mathbf{s}\\leq\\mathbf{x}\\leq\\frac{1}{2}\\,\\mathbf{s} \\text{.}
+```
+
+# Example
+
+```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.random_position; using MOLGA.Types; using Random)
+julia> random_position(Vec([8, 5, 5]); rng=Xoshiro(1))
+3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
+ -3.413069164245657
+ -0.7537925522140694
+  0.9941334184573423
+```
+"""
+function random_position(box_size::Vec; rng::AbstractRNG=Random.default_rng())
+    return Vec(rand(rng, Uniform(-s / 2, s / 2)) for s in box_size)
+end
+
+"""
+    random_angles([; rng])
+
+Generate a vector of three random angles (from ``0`` to ``2\\pi``, in radians).
+
+You can pass a random number generator to `rng`. If you need consistent results for testing
+purposes, pass a seeded pseudorandom number generator here, eg.
+[`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
+Defaults to
+[`Random.default_rng()`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.default_rng).
+
+# Example
+
+```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.random_angles; using Random)
+julia> random_angles(; rng=Xoshiro(123))
+3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
+ 3.2748828620072237
+ 3.687015596584574
+ 5.597555946335841
+```
+"""
+random_angles(; rng::AbstractRNG=Random.default_rng()) = Vec(rand(rng, 3) * 2π)
 
 end

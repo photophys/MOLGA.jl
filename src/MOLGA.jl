@@ -4,6 +4,7 @@ include("./logging.jl")
 
 include("./helpers.jl")
 include("./types.jl")
+include("./samples.jl")
 include("./io.jl")
 
 include("./configuration.jl")

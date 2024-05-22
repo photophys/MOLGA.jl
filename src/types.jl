@@ -47,7 +47,7 @@ end
 Stores properties of a single atom.
 $(TYPEDFIELDS)
 """
-struct Atom <: AbstractAtom
+mutable struct Atom <: AbstractAtom
     """Atomic number of the element, eg. 6 for Carbon."""
     element::Int
 
