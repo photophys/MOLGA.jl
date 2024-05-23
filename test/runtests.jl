@@ -7,6 +7,7 @@ using Test, Documenter
     end
 
     @testset "Integration Tests" begin
+        include("./integration/main.jl")
         include("./integration/initial_population.jl")
         include("./integration/mutation.jl")
     end
