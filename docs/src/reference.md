@@ -36,6 +36,12 @@ Modules = [MOLGA.Types]
 Modules = [MOLGA.Configuration]
 ```
 
+## I/O
+
+```@autodocs
+Modules = [MOLGA.IOm]
+```
+
 ## Helpers
 
 ```@autodocs

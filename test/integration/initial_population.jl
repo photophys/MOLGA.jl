@@ -9,7 +9,7 @@ using Random
 
         filename = "temp-testfile-population-$(name).xyz"
 
-        MOLGA.Helpers.export_xyz(population, filename)
+        MOLGA.IOm.export_xyz(population, filename)
 
         # check if files are equal
         return success(`diff $filename integration/xyz/population-$name.xyz`)

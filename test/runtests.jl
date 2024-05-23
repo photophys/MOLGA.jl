@@ -3,7 +3,7 @@ using Test, Documenter
 
 @testset verbose = true "MOLGA.jl" begin
     @testset "Unit Tests" begin
-        include("./unit/helpers.jl")
+        include("./unit/io.jl")
     end
 
     @testset "Integration Tests" begin
