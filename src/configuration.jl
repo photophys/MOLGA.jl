@@ -6,7 +6,7 @@ using DocStringExtensions
 using PeriodicTable
 
 using ..Types
-using ..IO
+using ..IOm
 
 export ConfigurationObject,
     DistanceThresholds,

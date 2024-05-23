@@ -1,53 +1,89 @@
 module MOLGA
 
+using Random
+
 include("./logging.jl")
 
 include("./helpers.jl")
 include("./types.jl")
-include("./samples.jl")
 include("./io.jl")
 
 include("./configuration.jl")
-include("./interfaces/_index.jl")
-include("./genetic_algorithm/_index.jl")
+include("./interfaces/.module.jl")
+include("./genetic_algorithm/.module.jl")
 
-export run
+export run_genetic_algorithm
 
 """
-    run(configuration_file [, debug_log::Bool = false])
+    run_genetic_algorithm(configuration_object [; debug_log = false, rng])
 
-Start the Molecular Genetic Algorithm.
+Run the molecular genetic algorithm using the provided
+[`ConfigurationObject`](@ref Configuration.ConfigurationObject).
+
+# Parameters
+
+  - `configuration_object::`[`ConfigurationObject`](@ref Configuration.ConfigurationObject)
+  - `debug_log::Bool`: Defines if you want to enable the logging of debug-level events.
+  - `rng::AbstractRNG`: Random number generator. If you need consistent results for testing
+    purposes, pass a seeded pseudorandom number generator here, eg.
+    [`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
+    Defaults to
+    [`Random.default_rng()`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.default_rng).
 """
-function run(configuration_file::String, debug_log::Bool=false)
+function run_genetic_algorithm(
+    config::Configuration.ConfigurationObject;
+    debug_log::Bool=false,
+    rng::AbstractRNG=Random.default_rng(),
+)
     Logging.setup_logger(debug_log)
 
-    CONFIG = Configuration.load_config(configuration_file)
-    population = GeneticAlgorithm.InitialPopulation.create(CONFIG)
+    population = GeneticAlgorithm.InitialPopulation.create(
+        config.initial_population, config.distance_thresholds; rng
+    )
 
-    @info population
+    for big_cycle_idx in 1:1
+        GeneticAlgorithm.Mutation.mutate!(
+            population,
+            config.mutation,
+            config.preserve_fragments,
+            config.initial_population.box_size,
+            config.distance_thresholds;
+            rng,
+        )
+    end
+
+    @info length(population)
+    IOm.export_xyz(population, "results.xyz")
 
     return nothing
 end
 
+"""
+run_genetic_algorithm(configuration_file [, debug_log = false, rng])
+
+Start the molecular genetic algorithm and load the necessary configuration parameters from the
+specified TOML file.
+
+# Parameters
+
+  - `configuration_file::String`: The filename and path to the TOML configuration file (see
+    specification [here](parameters/input-file.md)).
+  - `debug_log::Bool`: Defines if you want to enable the logging of debug-level events.
+  - `rng::AbstractRNG`: Random number generator. If you need consistent results for testing
+    purposes, pass a seeded pseudorandom number generator here, eg.
+    [`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
+    Defaults to
+    [`Random.default_rng()`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.default_rng).
+"""
+function run_genetic_algorithm(
+    configuration_file::String; debug_log::Bool=false, rng::AbstractRNG=Random.default_rng()
+)
+    Logging.setup_logger(debug_log)
+
+    config = Configuration.load_config(configuration_file)
+    run_genetic_algorithm(config; debug_log, rng)
+
+    return nothing
 end
 
-using ArgParse
-
-if abspath(PROGRAM_FILE) == @__FILE__
-    arg_parser = ArgParseSettings()
-    @add_arg_table! arg_parser begin
-        "--config", "-c"
-        help = "path to the configuration file"
-        arg_type = String
-        default = "config.yaml"
-        metavar = "path/to/config.yaml"
-
-        "--debug", "-d"
-        help = "enable logging of debug-level events"
-        action = :store_true
-    end
-
-    PARSED_ARGS = parse_args(ARGS, arg_parser)
-
-    MOLGA.run(PARSED_ARGS["config"], PARSED_ARGS["debug"])
 end

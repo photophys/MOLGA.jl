@@ -1,4 +1,4 @@
-module IO
+module IOm # avoiding IO as name since this can cause problems
 
 using PeriodicTable
 
@@ -13,7 +13,6 @@ export load_xyz, export_xyz
 Get all atoms from a structure in XYZ-format (with element symbols).
 """
 function load_xyz(xyz_file::String)
-    # TODO: update to standard format (num atoms, comment)
     @debug "Read atoms from xyz-file $(xyz_file)"
 
     atoms = BaseAtom[]
@@ -21,7 +20,7 @@ function load_xyz(xyz_file::String)
     file = open(xyz_file, "r")
 
     try
-        for line in eachline(file)
+        for line in Iterators.drop(eachline(file), 2)
             parts = split(line)
             push!(atoms, BaseAtom(atomic_number(parts[1]), parse.(Float64, parts[2:4])))
         end

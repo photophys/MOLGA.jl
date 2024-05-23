@@ -7,7 +7,8 @@ using ...Types
 using ..Utils
 
 """
-    mutate!(population, config [; rng])
+    mutate!(population, mutation_config, preserve_fragments, box_size, distance_thresholds
+        [; mutation_method_distribution, rng])
 
 Perform mutation on all structures of the population in-place.
 
@@ -24,7 +25,13 @@ both mutations.
 # Arguments
 
   - `population::Vector{`[`Structure`](@ref)`}`
-  - `config::`[`ConfigurationObject`](@ref)
+  - `mutation_config::`[`MutationConfiguration`](@ref)
+  - `preserve_fragments::Bool`: If you want to preserve fragments.
+  - `box_size::`[`Vec`](@ref)
+  - `distance_thresholds::`[`DistanceThresholds`](@ref)
+  - `mutation_method_distribution::AbstractVector{Real}`: Define the distribution of the two
+    mutation methods. The first position controls the atom switch mutation, the second the atom
+    reposition. Defaults to `[1, 1]` which means that both mutations have the same probability.
   - `rng::AbstractRNG`: Random number generator. If you need consistent results for testing
     purposes, pass a seeded pseudorandom number generator here, eg.
     [`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
@@ -33,34 +40,36 @@ both mutations.
 """
 function mutate!(
     population::Vector{Structure},
-    config::ConfigurationObject;
+    mutation_config::MutationConfiguration,
+    preserve_fragments::Bool,
+    box_size::Vec,
+    distance_thresholds::DistanceThresholds;
+    mutation_method_distribution::AbstractVector{<:Real}=[1, 1],
     rng::AbstractRNG=Random.default_rng(),
 )
     original_structures = Vector{Structure}()
 
     for structure in population
         # TODO: do we want to control each mutation probability separately?
-        should_mutate = rand(2) .< config.mutation.probability
+        should_mutate = rand(rng, 2) .< mutation_config.probability .* mutation_method_distribution
 
-        if config.mutation.keep_non_mutated && any(should_mutate)
+        if mutation_config.keep_non_mutated && any(should_mutate)
             push!(original_structures, deepcopy(structure))
         end
 
         if should_mutate[1]
-            if config.preserve_fragments
-                switch_atom_preserving!(structure, config.distance_thresholds; rng)
+            if preserve_fragments
+                switch_atom_preserving!(structure, distance_thresholds; rng)
             else
                 switch_atom!(structure; rng)
             end
         end
 
         if should_mutate[2]
-            if config.preserve_fragments
-                reposition_atom_preserving!(
-                    structure, config.initial_population.box_size, config.distance_thresholds; rng
-                )
+            if preserve_fragments
+                reposition_atom_preserving!(structure, box_size, distance_thresholds; rng)
             else
-                reposition_atom!(structure, config.initial_population.box_size; rng)
+                reposition_atom!(structure, box_size; rng)
             end
         end
     end
@@ -211,52 +220,6 @@ structure is not modified.
     [`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
     Defaults to
     [`Random.default_rng()`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.default_rng).
-
-# Example
-
-```jldoctest; setup=:(using Random, MOLGA, MOLGA.Configuration; import MOLGA.GeneticAlgorithm.Mutation.switch_atom_preserving!)
-julia> structure = deepcopy(MOLGA.Samples.DEMO_STRUCTURE_Ag)
-Structure with 13 atoms
-Energy: 0.0
-Nuclear repulsion energy: 0.0
-Age: 0
-   frag perm position
-O     2    2 [1.834176             -1.086997            -0.145691           ]
-H     2    2 [2.642219             -0.527623            0.117024            ]
-H     2    2 [2.082181             -1.613762            -0.930716           ]
-O     2    3 [3.732413             0.511988             0.663892            ]
-H     2    3 [4.173112             0.327927             1.518267            ]
-H     2    3 [4.423184             0.920848             0.10458             ]
-Ag    1    1 [1.2e-5               -0.000259            -0.210701           ]
-O     2    4 [-1.833937            1.086716             -0.146848           ]
-H     2    4 [-2.081857            1.612214             -0.932792           ]
-H     2    4 [-2.64222             0.527829             0.116511            ]
-O     2    5 [-3.732675            -0.510572            0.664366            ]
-H     2    5 [-4.423943            -0.91958             0.105806            ]
-H     2    5 [-4.173075            -0.324762            1.518501            ]
-
-julia> switch_atom_preserving!(structure, DistanceThresholds(0.6, 5); rng=Xoshiro(123))
-
-julia> structure
-Structure with 13 atoms
-Energy: 0.0
-Nuclear repulsion energy: 0.0
-Age: 0
-   frag perm position
-O     2    2 [-0.2479929999999999  0.5265059999999999   0.574324            ]
-H     2    2 [0.5600499999999999   1.08588              0.837039            ]
-H     2    2 [1.1999999999900979e-5 -0.0002590000000000092 -0.21070100000000003]
-O     2    3 [3.732413             0.511988             0.663892            ]
-H     2    3 [4.173112             0.327927             1.518267            ]
-H     2    3 [4.423184             0.920848             0.10458             ]
-Ag    1    1 [2.082181             -1.613762            -0.930716           ]
-O     2    4 [-1.833937            1.086716             -0.146848           ]
-H     2    4 [-2.081857            1.612214             -0.932792           ]
-H     2    4 [-2.64222             0.527829             0.116511            ]
-O     2    5 [-3.732675            -0.510572            0.664366            ]
-H     2    5 [-4.423943            -0.91958             0.105806            ]
-H     2    5 [-4.173075            -0.324762            1.518501            ]
-```
 """
 function switch_atom_preserving!(
     structure::Structure,
@@ -306,65 +269,6 @@ the lower distance threshold.
 
   - `true` if the switch is successful,
   - `false` if a distance check fails.
-
-# Example
-
-```jldoctest; setup=:(using MOLGA,MOLGA.Configuration; import MOLGA.GeneticAlgorithm.Mutation.try_switch_atom_preserving!)
-julia> structure = deepcopy(MOLGA.Samples.DEMO_STRUCTURE_Ag)
-Structure with 13 atoms
-Energy: 0.0
-Nuclear repulsion energy: 0.0
-Age: 0
-   frag perm position
-O     2    2 [1.834176             -1.086997            -0.145691           ]
-H     2    2 [2.642219             -0.527623            0.117024            ]
-H     2    2 [2.082181             -1.613762            -0.930716           ]
-O     2    3 [3.732413             0.511988             0.663892            ]
-H     2    3 [4.173112             0.327927             1.518267            ]
-H     2    3 [4.423184             0.920848             0.10458             ]
-Ag    1    1 [1.2e-5               -0.000259            -0.210701           ]
-O     2    4 [-1.833937            1.086716             -0.146848           ]
-H     2    4 [-2.081857            1.612214             -0.932792           ]
-H     2    4 [-2.64222             0.527829             0.116511            ]
-O     2    5 [-3.732675            -0.510572            0.664366            ]
-H     2    5 [-4.423943            -0.91958             0.105806            ]
-H     2    5 [-4.173075            -0.324762            1.518501            ]
-
-julia> try_switch_atom_preserving!(structure, 2, 4, DistanceThresholds(0.6, 5))
-false
-
-julia> try_switch_atom_preserving!(structure, 10, 11, DistanceThresholds(0.6, 5))
-false
-
-julia> try_switch_atom_preserving!(structure, 10, 13, DistanceThresholds(1, 5))
-false
-
-julia> try_switch_atom_preserving!(structure, 2, 7, DistanceThresholds(1.6, 5))
-false
-
-julia> try_switch_atom_preserving!(structure, 2, 7, DistanceThresholds(0.6, 5))
-true
-
-julia> structure
-Structure with 13 atoms
-Energy: 0.0
-Nuclear repulsion energy: 0.0
-Age: 0
-   frag perm position
-O     2    2 [-0.8080309999999999  -0.559633            -0.47341599999999995]
-H     2    2 [1.1999999999900979e-5 -0.0002590000000000092 -0.21070099999999997]
-H     2    2 [-0.5600260000000001  -1.086398            -1.258441           ]
-O     2    3 [3.732413             0.511988             0.663892            ]
-H     2    3 [4.173112             0.327927             1.518267            ]
-H     2    3 [4.423184             0.920848             0.10458             ]
-Ag    1    1 [2.642219             -0.527623            0.11702399999999999 ]
-O     2    4 [-1.833937            1.086716             -0.146848           ]
-H     2    4 [-2.081857            1.612214             -0.932792           ]
-H     2    4 [-2.64222             0.527829             0.116511            ]
-O     2    5 [-3.732675            -0.510572            0.664366            ]
-H     2    5 [-4.423943            -0.91958             0.105806            ]
-H     2    5 [-4.173075            -0.324762            1.518501            ]
-```
 """
 function try_switch_atom_preserving!(
     structure::Structure, index_1::Int, index_2::Int, distance_thresholds::DistanceThresholds
@@ -486,53 +390,6 @@ is not modified.
     [`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
     Defaults to
     [`Random.default_rng()`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.default_rng).
-
-# Example
-
-```jldoctest; setup=:(using Random, MOLGA, MOLGA.Types, MOLGA.Configuration; import MOLGA.GeneticAlgorithm.Mutation.reposition_atom_preserving!)
-julia> structure = deepcopy(MOLGA.Samples.DEMO_STRUCTURE_Ag)
-Structure with 13 atoms
-Energy: 0.0
-Nuclear repulsion energy: 0.0
-Age: 0
-   frag perm position
-O     2    2 [1.834176             -1.086997            -0.145691           ]
-H     2    2 [2.642219             -0.527623            0.117024            ]
-H     2    2 [2.082181             -1.613762            -0.930716           ]
-O     2    3 [3.732413             0.511988             0.663892            ]
-H     2    3 [4.173112             0.327927             1.518267            ]
-H     2    3 [4.423184             0.920848             0.10458             ]
-Ag    1    1 [1.2e-5               -0.000259            -0.210701           ]
-O     2    4 [-1.833937            1.086716             -0.146848           ]
-H     2    4 [-2.081857            1.612214             -0.932792           ]
-H     2    4 [-2.64222             0.527829             0.116511            ]
-O     2    5 [-3.732675            -0.510572            0.664366            ]
-H     2    5 [-4.423943            -0.91958             0.105806            ]
-H     2    5 [-4.173075            -0.324762            1.518501            ]
-
-julia> thresholds = DistanceThresholds(0.6, 5);
-       reposition_atom_preserving!(structure, Vec(8, 8, 8), thresholds; rng=Xoshiro(123))
-
-julia> structure
-Structure with 13 atoms
-Energy: 0.0
-Nuclear repulsion energy: 0.0
-Age: 0
-   frag perm position
-O     2    2 [1.834176             -1.086997            -0.145691           ]
-H     2    2 [2.642219             -0.527623            0.117024            ]
-H     2    2 [2.082181             -1.613762            -0.930716           ]
-O     2    3 [0.14825493974911375  1.4998088298154295   -2.4914429619616025 ]
-H     2    3 [0.5889539397491133   1.3157478298154297   -1.6370679619616026 ]
-H     2    3 [0.8390259397491135   1.9086688298154297   -3.050754961961603  ]
-Ag    1    1 [1.2e-5               -0.000259            -0.210701           ]
-O     2    4 [-1.833937            1.086716             -0.146848           ]
-H     2    4 [-2.081857            1.612214             -0.932792           ]
-H     2    4 [-2.64222             0.527829             0.116511            ]
-O     2    5 [-3.732675            -0.510572            0.664366            ]
-H     2    5 [-4.423943            -0.91958             0.105806            ]
-H     2    5 [-4.173075            -0.324762            1.518501            ]
-```
 """
 function reposition_atom_preserving!(
     structure::Structure,
@@ -574,61 +431,6 @@ the lower distance threshold.
 
   - `true` if the reposition is successful,
   - `false` if a distance check fails.
-
-# Example
-
-```jldoctest; setup=:(using MOLGA, MOLGA.Types, MOLGA.Configuration; import MOLGA.GeneticAlgorithm.Mutation.try_reposition_atom_preserving!)
-julia> structure = deepcopy(MOLGA.Samples.DEMO_STRUCTURE_Ag)
-Structure with 13 atoms
-Energy: 0.0
-Nuclear repulsion energy: 0.0
-Age: 0
-   frag perm position
-O     2    2 [1.834176             -1.086997            -0.145691           ]
-H     2    2 [2.642219             -0.527623            0.117024            ]
-H     2    2 [2.082181             -1.613762            -0.930716           ]
-O     2    3 [3.732413             0.511988             0.663892            ]
-H     2    3 [4.173112             0.327927             1.518267            ]
-H     2    3 [4.423184             0.920848             0.10458             ]
-Ag    1    1 [1.2e-5               -0.000259            -0.210701           ]
-O     2    4 [-1.833937            1.086716             -0.146848           ]
-H     2    4 [-2.081857            1.612214             -0.932792           ]
-H     2    4 [-2.64222             0.527829             0.116511            ]
-O     2    5 [-3.732675            -0.510572            0.664366            ]
-H     2    5 [-4.423943            -0.91958             0.105806            ]
-H     2    5 [-4.173075            -0.324762            1.518501            ]
-
-julia> thresholds = DistanceThresholds(0.6, 5);
-
-julia> try_reposition_atom_preserving!(structure, 3, Vec(2.7924, -0.8167, -0.1357), thresholds)
-false
-
-julia> try_reposition_atom_preserving!(structure, 7, Vec(-1.3685, 0.8138, -0.2107), thresholds)
-false
-
-julia> try_reposition_atom_preserving!(structure, 11, Vec(-1.5886, -0.9054, 0.6644), thresholds)
-true
-
-julia> structure
-Structure with 13 atoms
-Energy: 0.0
-Nuclear repulsion energy: 0.0
-Age: 0
-   frag perm position
-O     2    2 [1.834176             -1.086997            -0.145691           ]
-H     2    2 [2.642219             -0.527623            0.117024            ]
-H     2    2 [2.082181             -1.613762            -0.930716           ]
-O     2    3 [3.732413             0.511988             0.663892            ]
-H     2    3 [4.173112             0.327927             1.518267            ]
-H     2    3 [4.423184             0.920848             0.10458             ]
-Ag    1    1 [1.2e-5               -0.000259            -0.210701           ]
-O     2    4 [-1.833937            1.086716             -0.146848           ]
-H     2    4 [-2.081857            1.612214             -0.932792           ]
-H     2    4 [-2.64222             0.527829             0.116511            ]
-O     2    5 [-1.5886              -0.9054              0.6644              ]
-H     2    5 [-2.2798680000000004  -1.3144079999999998  0.10583999999999998 ]
-H     2    5 [-2.029               -0.71959             1.518535            ]
-```
 """
 function try_reposition_atom_preserving!(
     structure::Structure,

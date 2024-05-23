@@ -1,0 +1,19 @@
+# Example configuration file for Molecular Genetic Algorithm
+
+charge = -1
+spin_multiplicity = 0
+preserve_fragments = true
+
+[initial_population]
+num_structures = 5
+box_size = [10, 10, 10]
+atoms = { O = 2 }
+molecules = { "h2o.xyz" = 3 }
+
+[distance_thresholds]
+min = 0.6
+max = 10
+
+[mutation]
+probability = 0.5
+keep_non_mutated = true

@@ -1,6 +1,7 @@
 module Helpers
 
 using PeriodicTable
+
 export element_symbol, atomic_number
 
 """
