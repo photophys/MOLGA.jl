@@ -6,7 +6,6 @@ include("./logging.jl")
 
 include("./helpers.jl")
 include("./types.jl")
-include("./io.jl")
 
 include("./configuration.jl")
 include("./interfaces/.module.jl")
@@ -53,7 +52,7 @@ function run_genetic_algorithm(
     end
 
     @info length(population)
-    IO.export_xyz(population, "results.xyz")
+    Helpers.export_xyz(population, "results.xyz")
 
     return nothing
 end

@@ -42,7 +42,7 @@ using Random
         # export to multiple xyz file
         filename = "$(name)-$(method)$(preserve ? "-preserve" : "")"
         testfile_name = "temp-testfile-mutation-$(filename).xyz"
-        MOLGA.IO.export_xyz(population, testfile_name)
+        MOLGA.Helpers.export_xyz(population, testfile_name)
 
         # check if equal to manually revised file
         return success(`diff $testfile_name integration/xyz/mutation-$filename.xyz`)
