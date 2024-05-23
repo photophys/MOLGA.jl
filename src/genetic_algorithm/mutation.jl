@@ -51,7 +51,7 @@ function mutate!(
 
     for structure in population
         # TODO: do we want to control each mutation probability separately?
-        should_mutate = rand(2) .< mutation_config.probability .* mutation_method_distribution
+        should_mutate = rand(rng, 2) .< mutation_config.probability .* mutation_method_distribution
 
         if mutation_config.keep_non_mutated && any(should_mutate)
             push!(original_structures, deepcopy(structure))
