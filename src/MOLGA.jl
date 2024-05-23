@@ -8,8 +8,8 @@ include("./samples.jl")
 include("./io.jl")
 
 include("./configuration.jl")
-include("./interfaces/_index.jl")
-include("./genetic_algorithm/_index.jl")
+include("./interfaces/.module.jl")
+include("./genetic_algorithm/.module.jl")
 
 export run_genetic_algorithm
 
@@ -21,9 +21,7 @@ Run the molecular genetic algorithm using the provided
 
 # Parameters
 
-  - `configuration_object::`[`ConfigurationObject`](@ref Configuration.ConfigurationObject): The
-    filename and path to the TOML configuration file (see specification
-    [here](parameters/input-file.md)).
+  - `configuration_object::`[`ConfigurationObject`](@ref Configuration.ConfigurationObject)
   - `debug_log::Bool`: Defines if you want to enable the logging of debug-level events.
 """
 function run_genetic_algorithm(config::Configuration.ConfigurationObject; debug_log::Bool=false)

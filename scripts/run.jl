@@ -14,6 +14,6 @@ arg_parser = ArgParseSettings()
     action = :store_true
 end
 
-PARSED_ARGS = @time parse_args(ARGS, arg_parser)
+PARSED_ARGS = parse_args(ARGS, arg_parser)
 
 run_genetic_algorithm(PARSED_ARGS["config"]; debug_log=PARSED_ARGS["debug"])
