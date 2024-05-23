@@ -8,14 +8,15 @@ using ...Types
 using ..Utils
 
 """
-    create(config [; rng])
+    create(initial_population_config, distance_thresholds [; rng])
 
 Initialize the population by creating the desired amount of random structures using the
 [`InitialPopulationConfiguration`](@ref).
 
 # Arguments
 
-  - `config::`[`ConfigurationObject`](@ref)
+  - `initial_population_config::`[`InitialPopulationConfiguration`](@ref)
+  - `distance_thresholds::`[`DistanceThresholds`](@ref)
   - `rng::AbstractRNG`: Random number generator. If you need consistent results for testing
     purposes, pass a seeded pseudorandom number generator here, eg.
     [`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
@@ -26,15 +27,17 @@ Initialize the population by creating the desired amount of random structures us
 
 A vector of [structures](@ref Structure).
 """
-function create(config::ConfigurationObject; rng::AbstractRNG=Random.default_rng())
+function create(
+    initial_population_config::InitialPopulationConfiguration,
+    distance_thresholds::DistanceThresholds;
+    rng::AbstractRNG=Random.default_rng(),
+)
     population = Structure[]
 
-    indices = generate_indices(config.initial_population.atom_config)
+    indices = generate_indices(initial_population_config.atom_config)
 
-    for _ in 1:(config.initial_population.num_structures)
-        atoms = generate_atoms(
-            indices, config.initial_population, config.distance_thresholds, 10_000; rng
-        )
+    for _ in 1:(initial_population_config.num_structures)
+        atoms = generate_atoms(indices, initial_population_config, distance_thresholds, 10_000; rng)
         push!(population, Structure(; atoms=atoms))
     end
 

@@ -4,7 +4,6 @@ include("./logging.jl")
 
 include("./helpers.jl")
 include("./types.jl")
-include("./samples.jl")
 include("./io.jl")
 
 include("./configuration.jl")
@@ -27,7 +26,9 @@ Run the molecular genetic algorithm using the provided
 function run_genetic_algorithm(config::Configuration.ConfigurationObject; debug_log::Bool=false)
     Logging.setup_logger(debug_log)
 
-    population = GeneticAlgorithm.InitialPopulation.create(config)
+    population = GeneticAlgorithm.InitialPopulation.create(
+        config.initial_population, config.distance_thresholds
+    )
 
     for big_cycle_idx in 1:1
         #  genetic algorithm here
