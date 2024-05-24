@@ -9,7 +9,20 @@ using ..Helpers
 export AbstractAtom, Atom, BaseAtom, Structure, Vec
 
 """
-Three-dimensional vector.
+    Vec(x, y, z)
+
+Three-dimensional [static](https://juliaarrays.github.io/StaticArrays.jl/stable/pages/api/#SVector)
+vector storing `Float64` numbers.
+
+# Example
+
+```jldoctest; setup=:(using MOLGA.Types)
+julia> Vec(1, 0, 0.64)
+3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
+ 1.0
+ 0.0
+ 0.64
+```
 """
 const Vec = SVector{3,Float64}
 
@@ -19,14 +32,14 @@ function Base.show(io::IO, vec::Vec)
 end
 
 """
-Abstract type for [`Atom`](@ref) and [`BaseAtom`](@ref).
+Abstract supertype for [`Atom`](@ref) and [`BaseAtom`](@ref).
 """
 abstract type AbstractAtom end
 
 """
     BaseAtom(element, position)
 
-Stores a basic atom.
+Store a basic atom as a subtype of [`AbstractAtom`](@ref).
 $(TYPEDFIELDS)
 """
 struct BaseAtom <: AbstractAtom
@@ -44,7 +57,7 @@ end
 """
     Atom(element, position, permanent_index, fragment_kind)
 
-Stores properties of a single atom.
+Store properties of a single atom. This is a subtype of [`AbstractAtom`](@ref).
 $(TYPEDFIELDS)
 """
 mutable struct Atom <: AbstractAtom
@@ -104,7 +117,7 @@ end
     Structure(atoms)
     Structure(atoms [, energy [, nuclear_repulsion_energy [, age]]])
 
-Stores properties of a molecular structure.
+Store properties of a molecular structure.
 $(TYPEDFIELDS)
 """
 @kwdef mutable struct Structure

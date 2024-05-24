@@ -19,7 +19,7 @@ export ConfigurationObject,
 """
     DistanceThresholds(min, max)
 
-Defines the thresholds for distances between atoms.
+Define the thresholds for distances between atoms.
 $(TYPEDFIELDS)
 The values are taken into account at several points, including in the generation of the initial 
 population and in mutation and recombination. They are given in angstroms.
@@ -33,7 +33,7 @@ struct DistanceThresholds
 end
 
 """
-    ConfigAtom(num, element)
+    ConfigAtom(quantity, element)
 
 Atom to define initial atom configuration.
 $(TYPEDFIELDS)
@@ -47,7 +47,7 @@ struct ConfigAtom
 end
 
 """
-    ConfigMolecule(num, atoms)
+    ConfigMolecule(quantity, atoms)
 
 Molecule to define initial atom configuration.
 $(TYPEDFIELDS)
@@ -61,13 +61,13 @@ struct ConfigMolecule
 end
 
 """
-The atom configuration consists of single [atoms](@ref ConfigAtom) and
+The atom configuration is a vector consisting of single [atoms](@ref ConfigAtom) and
 [molecules](@ref ConfigMolecule).
 """
 const AtomConfig = Array{Union{ConfigAtom,ConfigMolecule}}
 
 """
-Defines the configuration of the initial population.
+Store the configuration of the initial population.
 $(TYPEDFIELDS)
 """
 struct InitialPopulationConfiguration
@@ -100,7 +100,7 @@ struct MutationConfiguration
 end
 
 """
-Stores the entire configuration parameters.
+Store the entire configuration parameters.
 $(FIELDS)
 """
 struct ConfigurationObject
@@ -124,13 +124,18 @@ struct ConfigurationObject
 end
 
 """
-    create_atom_config(atoms::Dict{String,Int}, molecules::Dict{String,Int}, config_path::String)
+    create_atom_config(atoms, molecules, config_path)
 
-Creates [`AtomConfig`](@ref) from the TOML raw values (atoms, molecules). Elements are internally
+Create [`AtomConfig`](@ref) from the TOML raw values (atoms, molecules). Elements are internally
 represented via their atomic number. The molecules are loaded and parsed from their xyz-files.
 
-The `config_path` is the folder where the config file is stored. The molecule file paths are
-expected to be relative to this folder.
+# Arguments
+
+  - `atoms::Dict{String,Int}`: Raw dictionary with element symbols and quantities of the desired
+    atoms.
+  - `molecules::Dict{String,Int}`: Raw dictionary with molecule xyz-filenames and quantities.
+  - `config_path::String`: The folder where the config file is stored. The molecule file paths are
+    expected to be relative to this folder.
 """
 function create_atom_config(
     atoms::Dict{String,Int}, molecules::Dict{String,Int}, config_path::String

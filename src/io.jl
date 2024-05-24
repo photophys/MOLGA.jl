@@ -10,7 +10,9 @@ export load_xyz, export_xyz
 """
     load_xyz(xyz_file::String)
 
-Get all atoms from a structure in XYZ-format (with element symbols).
+Load all atoms from a structure in XYZ-format (with element symbols).
+
+Returns `Vector::{`[`BaseAtom`](@ref)`}`.
 """
 function load_xyz(xyz_file::String)
     @debug "Read atoms from xyz-file $(xyz_file)"
