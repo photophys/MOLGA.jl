@@ -113,14 +113,14 @@ Rotate a 3D position vector by a 3D angle vector around the origin using
 
 # Arguments
 
-  - `position::Vector{Float64}`: The 3D position vector to be rotated.
-  - `angle::Vector{Float64}`: The 3D angle vector representing rotation angles around the ``x``,
+  - `position::`[`Vec`](@ref): The 3D position vector to be rotated.
+  - `angle::``[`Vec`](@ref): The 3D angle vector representing rotation angles around the ``x``,
     ``y``, and ``z`` axes in radians.
 
 # Example
 
 ```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.rotate_position; using MOLGA.Types)
-julia> rotate_position(Vec([1, 0, 0.5]), Vec([0, 0, π]))
+julia> rotate_position(Vec(1, 0, 0.5), Vec(0, 0, π))
 3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
  -1.0
   1.2246467991473532e-16
@@ -145,11 +145,14 @@ end
 Generate a random position within the specified box. The origin is the box's center point, so that
 a box size of ``\\mathbf{s}=\\left(s_x,s_y,s_z\\right)`` leads to a random position ``\\mathbf{x}``
 
-You can pass a random number generator to `rng`. If you need consistent results for testing
-purposes, pass a seeded pseudorandom number generator here, eg.
-[`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
-Defaults to
-[`Random.default_rng()`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.default_rng).
+# Arguments
+
+  - `box_size::``[`Vec`](@ref)
+  - `rng::AbstractRNG`: Random number generator. If you need consistent results for testing
+    purposes, pass a seeded pseudorandom number generator here, eg.
+    [`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
+    Defaults to
+    [`Random.default_rng()`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.default_rng).
 
 ```math
 -\\frac{1}{2}\\,\\mathbf{s}\\leq\\mathbf{x}\\leq\\frac{1}{2}\\,\\mathbf{s} \\text{.}
@@ -158,7 +161,7 @@ Defaults to
 # Example
 
 ```jldoctest; setup=:(import MOLGA.GeneticAlgorithm.InitialPopulation.random_position; using MOLGA.Types; using Random)
-julia> random_position(Vec([8, 5, 5]); rng=Xoshiro(1))
+julia> random_position(Vec(8, 5, 5); rng=Xoshiro(1))
 3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
  -3.413069164245657
  -0.7537925522140694

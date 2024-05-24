@@ -23,7 +23,8 @@ Run the molecular genetic algorithm using the provided
 # Parameters
 
   - `configuration_object::`[`ConfigurationObject`](@ref Configuration.ConfigurationObject)
-  - `debug_log::Bool`: Defines if you want to enable the logging of debug-level events.
+  - `debug_log::Bool`: Defines if you want to enable the logging of debug-level events. Defaults to
+    `false`.
   - `rng::AbstractRNG`: Random number generator. If you need consistent results for testing
     purposes, pass a seeded pseudorandom number generator here, eg.
     [`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
@@ -59,7 +60,7 @@ function run_genetic_algorithm(
 end
 
 """
-run_genetic_algorithm(configuration_file [, debug_log = false, rng])
+    run_genetic_algorithm(configuration_file [, debug_log = false, rng])
 
 Start the molecular genetic algorithm and load the necessary configuration parameters from the
 specified TOML file.
@@ -68,7 +69,8 @@ specified TOML file.
 
   - `configuration_file::String`: The filename and path to the TOML configuration file (see
     specification [here](parameters/input-file.md)).
-  - `debug_log::Bool`: Defines if you want to enable the logging of debug-level events.
+  - `debug_log::Bool`: Defines if you want to enable the logging of debug-level events. Defaults to
+    `false`.
   - `rng::AbstractRNG`: Random number generator. If you need consistent results for testing
     purposes, pass a seeded pseudorandom number generator here, eg.
     [`Xoshiro(seed)`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.Xoshiro).
