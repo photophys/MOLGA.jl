@@ -228,6 +228,8 @@ function switch_atom_preserving!(
 )
     num_atoms = length(structure.atoms)
 
+    # (maybe switch by center of mass in the future?)
+
     # max number of combinations is Binomial(num_atoms, 2),
     # preferring looping through combinations over creating an array with all combinations
     for idx_1 in shuffle(rng, 1:num_atoms)
@@ -255,8 +257,10 @@ end
 Try to exchange the position of the atoms and/or fragments, specified by their indices, in-place
 with preservation of fragments.
 
-While building up the new atom list, distance checks are subsequently performed. Here, we only check
-the lower distance threshold.
+If a selected atom belongs to a fragment, the position of the entire fragment is exchanged with the
+other atom (which might also be a fragment). The displacement corresponds to the difference between
+the position of the first and second atom. While building up the new atom list, distance checks are
+subsequently performed. Here, we only check the lower distance threshold.
 
 # Arguments
 
@@ -417,8 +421,9 @@ end
 Try to move the specified atom or fragment from the provided structure to the provided position,
 preserving fragments.
 
-While building up the new atom list, distance checks are subsequently performed. Here, we only check
-the lower distance threshold.
+If the selected atom belongs to a fragment, the entire fragment is repositioned. The displacement
+corresponds to the difference between the atom's position and the new position. While building up
+the new atom list, distance checks are subsequently performed.
 
 # Arguments
 
@@ -450,8 +455,7 @@ function try_reposition_atom_preserving!(
             pos -= displacement
         end
 
-        # we only check the lower distance threshold here
-        if check_distance(pos, new_atoms, distance_thresholds, true)
+        if check_distance(pos, new_atoms, distance_thresholds)
             push!(new_atoms, Atom(atom.element, pos, atom.permanent_index, atom.fragment_kind))
         else
             @debug "Distance check within reposition_atom_preserving! failed" structure atom_index

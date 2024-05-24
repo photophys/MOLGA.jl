@@ -7,7 +7,7 @@ using Random
         # create sample population
         box_size = Vec(8, 8, 8)
         population_config = InitialPopulationConfiguration(10, box_size, atom_config)
-        distance_thresholds = DistanceThresholds(0.6, 5)
+        distance_thresholds = DistanceThresholds(0.6, 10)
         population = MOLGA.GeneticAlgorithm.InitialPopulation.create(
             population_config, distance_thresholds; rng
         )
